@@ -2,9 +2,11 @@ import time
 
 import requests
 
+from ..prices import get_token_prices
+
 TRONGRID = "https://api.trongrid.io"
 
-# Only USDT and USDC are accepted (official TRC-20 contracts, lowercase keys)
+# Accepted TRC-20 contracts (lowercase keys)
 ALLOWED_TOKENS = {
     "tr7nhqjekqxgtci8q8zy4pl8otszgjlj6t": "USDT",
     "tekxitehnzsmse2xqrbj4w32run966rdz8": "USDC",
@@ -39,11 +41,15 @@ def check_tron(address, minutes=15):
     except Exception as exc:
         raise RuntimeError(str(exc)) from exc
 
+    prices = get_token_prices(list(received.keys()) or ["USDT", "TRX"])
+
     receipts = []
     total = 0.0
     for sym, amount in received.items():
-        usd = amount * 1.0  # USDT / USDC are $1
+        price = prices.get(sym, 1.0)
+        usd = amount * price
         total += usd
-        receipts.append({"token": sym, "amount": amount, "usd": usd, "price": 1.0})
+        receipts.append({"token": sym, "amount": amount, "usd": usd, "price": price})
 
     return {"chain": "tron", "address": address, "total_usd": total, "receipts": receipts}
+

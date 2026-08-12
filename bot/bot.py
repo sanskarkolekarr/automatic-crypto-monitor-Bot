@@ -269,7 +269,7 @@ async def run_verification(update: Update, context: ContextTypes.DEFAULT_TYPE, a
         f"in the last {VERIFY_WINDOW_MINUTES} min..."
     )
 
-    total, results = verify_wallets(wallets, amount, VERIFY_WINDOW_MINUTES)
+    total, results, confirmed = verify_wallets(wallets, amount, VERIFY_WINDOW_MINUTES)
 
     lines = []
     for r in results:
@@ -280,21 +280,19 @@ async def run_verification(update: Update, context: ContextTypes.DEFAULT_TYPE, a
         if r["receipts"]:
             lines.append(f"{r['chain'].upper()} ({short}):")
             for rc in r["receipts"]:
-                lines.append(f"  • {rc['amount']:,.4f} {rc['token']} ≈ ${rc['usd']:,.2f}")
+                price_str = f" @ ${rc['price']:,.2f}" if rc.get("price") and rc["price"] != 1.0 else ""
+                lines.append(f"  • {rc['amount']:,.4f} {rc['token']}{price_str} ≈ ${rc['usd']:,.2f}")
         else:
             lines.append(f"{r['chain'].upper()} ({short}): no incoming transfers found")
 
-    verdict = (
-        "PAYMENT CONFIRMED"
-        if total + 1e-6 >= amount
-        else "NO MATCHING PAYMENT FOUND"
-    )
+    verdict = "PAYMENT CONFIRMED" if confirmed else "NO MATCHING PAYMENT FOUND"
     body = "\n".join(lines) or "No data returned."
     await update.message.reply_text(
-        f"{'✅' if verdict == 'PAYMENT CONFIRMED' else '❌'} {verdict}\n\n"
+        f"{'✅' if confirmed else '❌'} {verdict}\n\n"
         f"{body}\n\n"
-        f"💰 Total received: ${total:,.2f} (needed ${amount:,.2f})"
+        f"💰 Total received: ${total:,.2f} (Target: ${amount:,.2f})"
     )
+
 
 
 async def cmd_verify(update: Update, context: ContextTypes.DEFAULT_TYPE):

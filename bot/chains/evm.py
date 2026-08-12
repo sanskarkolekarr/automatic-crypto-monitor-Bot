@@ -1,4 +1,5 @@
 import requests
+from ..prices import get_token_prices
 
 TRANSFER_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
 
@@ -17,15 +18,19 @@ ETH_RPCS = [
     "https://rpc.ankr.com/eth",
 ]
 
-# Only USDT and USDC are accepted
+# Supported tokens per chain
 TOKENS = {
     "bsc": [
-        {"name": "USDT", "address": "0x55d398326f99059fF775485246999027B3197955", "decimals": 18, "coin": "tether"},
-        {"name": "USDC", "address": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d", "decimals": 18, "coin": "usd-coin"},
+        {"name": "USDT", "address": "0x55d398326f99059fF775485246999027B3197955", "decimals": 18},
+        {"name": "USDC", "address": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d", "decimals": 18},
+        {"name": "DAI", "address": "0x1AF3F329e8BE154074D8769D1FFa4eE058B1Dbc3", "decimals": 18},
+        {"name": "ETH", "address": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8", "decimals": 18},
     ],
     "eth": [
-        {"name": "USDT", "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7", "decimals": 6, "coin": "tether"},
-        {"name": "USDC", "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", "decimals": 6, "coin": "usd-coin"},
+        {"name": "USDT", "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7", "decimals": 6},
+        {"name": "USDC", "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", "decimals": 6},
+        {"name": "DAI", "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F", "decimals": 18},
+        {"name": "WBTC", "address": "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599", "decimals": 8},
     ],
 }
 
@@ -98,11 +103,16 @@ def check_evm(chain, address, minutes=15):
         if raw:
             received[tok["name"]] = received.get(tok["name"], 0) + raw / 10 ** tok["decimals"]
 
+    token_names = [t["name"] for t in TOKENS[chain]]
+    prices = get_token_prices(token_names)
+
     receipts = []
     total = 0.0
     for name, amount in received.items():
-        usd = amount * 1.0  # USDT / USDC are $1
+        price = prices.get(name, 1.0)
+        usd = amount * price
         total += usd
-        receipts.append({"token": name, "amount": amount, "usd": usd, "price": 1.0})
+        receipts.append({"token": name, "amount": amount, "usd": usd, "price": price})
 
     return {"chain": chain, "address": addr, "total_usd": total, "receipts": receipts}
+
