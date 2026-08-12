@@ -226,12 +226,35 @@ async def cmd_grant(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Only the owner can use this.")
         return
     msg = update.message
-    if not msg.reply_to_message or not msg.reply_to_message.from_user:
-        await msg.reply_text("Reply to a user's message with /grant to give them access.")
+    user_id = None
+    username = None
+
+    if context.args:
+        target_arg = context.args[0].strip()
+        if target_arg.isdigit():
+            user_id = int(target_arg)
+        else:
+            username = target_arg.lstrip("@").lower()
+            wallets = db.get_wallets_by_username(username)
+            if wallets:
+                user_id = wallets[0]["user_id"]
+    elif msg.reply_to_message and msg.reply_to_message.from_user:
+        user = msg.reply_to_message.from_user
+        user_id = user.id
+        username = user.username
+
+    if not user_id and not username:
+        await msg.reply_text(
+            "Usage: Reply to a user's message with /grant, or send /grant 123456789 or /grant @username"
+        )
         return
-    user = msg.reply_to_message.from_user
-    db.add_allowed_user(user.id, user.username)
-    await msg.reply_text(f"Granted access to {user.full_name or user.username or user.id}.")
+
+    if user_id:
+        db.add_allowed_user(user_id, username)
+        target_name = f"@{username}" if username else f"user ID {user_id}"
+        await msg.reply_text(f"Granted access to {target_name}.")
+    else:
+        await msg.reply_text(f"Could not resolve user ID for @{username}. Please grant by user ID or reply to their message.")
 
 
 async def cmd_revoke(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -239,12 +262,36 @@ async def cmd_revoke(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Only the owner can use this.")
         return
     msg = update.message
-    if not msg.reply_to_message or not msg.reply_to_message.from_user:
-        await msg.reply_text("Reply to a user's message with /revoke to remove their access.")
+    user_id = None
+    username = None
+
+    if context.args:
+        target_arg = context.args[0].strip()
+        if target_arg.isdigit():
+            user_id = int(target_arg)
+        else:
+            username = target_arg.lstrip("@").lower()
+            wallets = db.get_wallets_by_username(username)
+            if wallets:
+                user_id = wallets[0]["user_id"]
+    elif msg.reply_to_message and msg.reply_to_message.from_user:
+        user = msg.reply_to_message.from_user
+        user_id = user.id
+        username = user.username
+
+    if not user_id and not username:
+        await msg.reply_text(
+            "Usage: Reply to a user's message with /revoke, or send /revoke 123456789 or /revoke @username"
+        )
         return
-    user = msg.reply_to_message.from_user
-    db.remove_allowed_user(user.id)
-    await msg.reply_text(f"Removed access from {user.full_name or user.username or user.id}.")
+
+    if user_id:
+        db.remove_allowed_user(user_id)
+        target_name = f"@{username}" if username else f"user ID {user_id}"
+        await msg.reply_text(f"Removed access from {target_name}.")
+    else:
+        await msg.reply_text(f"Could not resolve user ID for @{username}. Please revoke by user ID or reply to their message.")
+
 
 
 # ------------------------------ verification ------------------------------
