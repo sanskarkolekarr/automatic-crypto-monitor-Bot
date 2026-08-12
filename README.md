@@ -10,9 +10,11 @@ actually received that amount in USDT or USDC within the last 15 minutes. Only *
 
 | Chain | Accepted tokens | Method |
 |-------|-----------------|--------|
-| BSC   | USDT, USDC (BEP-20) | public RPC (no keys) |
-| ETH   | USDT, USDC (ERC-20) | public RPC (no keys) |
+| BSC   | USDT, USDC, DAI, ETH (BEP-20) | public RPC (no keys) |
+| ETH   | USDT, USDC, DAI, WBTC (ERC-20) | public RPC (no keys) |
 | TRON  | USDT, USDC (TRC-20, official contracts only) | TronGrid (keyless) |
+| LTC   | Native LTC | Litecoinspace / Mempool API (keyless) |
+| SOLANA| Native SOL, USDT, USDC (SPL Tokens) | public Solana RPC (no keys) |
 
 **Everything runs on free RPCs — no API keys needed.**
 

@@ -25,14 +25,14 @@ from .verifier import verify_wallets
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
 
-CHAINS = ("bsc", "eth", "tron")
+CHAINS = ("bsc", "eth", "tron", "ltc", "solana")
 REGISTER_CHAIN, REGISTER_ADDRESS = 1, 2
 
 HELP_TEXT = (
     "Crypto Payment Monitor Bot\n\n"
     "This bot verifies that a registered wallet actually received a payment.\n\n"
     "Commands:\n"
-    "/register - register your wallet (BSC / ETH / TRON)\n"
+    "/register - register your wallet (BSC / ETH / TRON / LTC / SOLANA)\n"
     "/mywallet - show your registered wallets\n"
     "/remove [chain] - remove one or all of your wallets\n"
     "/verify 300 - check a $300 payment was received\n\n"
@@ -62,6 +62,15 @@ def validate_address(chain, address):
         )
     if chain == "tron":
         return len(address) == 34 and address.startswith("T")
+    if chain == "ltc":
+        if address.startswith(("L", "3", "M")) and 26 <= len(address) <= 35:
+            return True
+        if address.lower().startswith("ltc1") and 39 <= len(address) <= 60:
+            return True
+        return False
+    if chain == "solana":
+        base58_chars = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+        return 32 <= len(address) <= 44 and all(c in base58_chars for c in address)
     return False
 
 
@@ -126,7 +135,7 @@ async def cmd_register(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def register_chain(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chain = update.message.text.strip().lower()
     if chain not in CHAINS:
-        await update.message.reply_text("Invalid chain. Pick one: BSC / ETH / TRON.")
+        await update.message.reply_text("Invalid chain. Pick one: " + " / ".join(c.upper() for c in CHAINS) + ".")
         return REGISTER_CHAIN
     context.user_data["reg_chain"] = chain
     await update.message.reply_text("Great. Now send your wallet address:")

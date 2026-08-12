@@ -12,6 +12,8 @@ COINGECKO_MAP = {
     "ETH": "ethereum",
     "BNB": "binancecoin",
     "TRX": "tron",
+    "LTC": "litecoin",
+    "SOL": "solana",
 }
 
 # Pre-populate stablecoins

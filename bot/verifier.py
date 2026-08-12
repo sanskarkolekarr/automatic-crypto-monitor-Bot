@@ -1,6 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor
 
-from .chains import evm, tron
+from .chains import evm, ltc, solana, tron
 from .config import TOLERANCE_USD
 
 
@@ -25,6 +25,10 @@ def verify_wallets(wallets, amount_usd, minutes=15):
                 return evm.check_evm(chain, address, minutes)
             if chain == "tron":
                 return tron.check_tron(address, minutes)
+            if chain == "ltc":
+                return ltc.check_ltc(address, minutes)
+            if chain == "solana":
+                return solana.check_solana(address, minutes)
             return {"chain": chain, "error": "unsupported chain"}
         except Exception as exc:
             return {"chain": chain, "error": str(exc)}
