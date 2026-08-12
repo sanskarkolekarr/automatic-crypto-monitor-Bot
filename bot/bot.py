@@ -207,7 +207,7 @@ async def cmd_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if chain not in CHAINS or not validate_address(chain, address):
         await update.message.reply_text("Invalid chain or address.")
         return
-    db.add_wallet(0, username, username, chain, address)
+    db.add_wallet_for_owner(username, chain, address)
     await update.message.reply_text(f"Registered {username} → {chain.upper()} {address}")
 
 
@@ -326,7 +326,7 @@ async def run_verification(update: Update, context: ContextTypes.DEFAULT_TYPE, a
         f"in the last {VERIFY_WINDOW_MINUTES} min..."
     )
 
-    total, results, confirmed = verify_wallets(wallets, amount, VERIFY_WINDOW_MINUTES)
+    total, results, confirmed, all_errored = verify_wallets(wallets, amount, VERIFY_WINDOW_MINUTES)
 
     lines = []
     for r in results:
@@ -342,15 +342,21 @@ async def run_verification(update: Update, context: ContextTypes.DEFAULT_TYPE, a
         else:
             lines.append(f"{r['chain'].upper()} ({short}): no incoming transfers found")
 
-    verdict = "PAYMENT CONFIRMED" if confirmed else "NO MATCHING PAYMENT FOUND"
-    body = "\n".join(lines) or "No data returned."
-    
-    footer = f"💰 Total received: ${total:,.2f} (Target: ${amount:,.2f})"
-    if not confirmed:
-        footer += "\n\n⚠️ If you sent the funds and think we had a technical error, please send proof (screen recording) and tag the middleman!"
+    if all_errored:
+        # All chains returned errors — this is a technical failure, not a real no-payment result.
+        verdict = "VERIFICATION FAILED (technical error)"
+        body = "\n".join(lines) or "No data returned."
+        footer = "⚠️ All blockchain checks failed. This is a technical error, NOT proof of non-payment. Please retry in a moment."
+    else:
+        verdict = "PAYMENT CONFIRMED" if confirmed else "NO MATCHING PAYMENT FOUND"
+        body = "\n".join(lines) or "No data returned."
+        footer = f"💰 Total received: ${total:,.2f} (Target: ${amount:,.2f})"
+        if not confirmed:
+            footer += "\n\n⚠️ If you sent the funds and think we had a technical error, please send proof (screen recording) and tag the middleman!"
 
+    icon = "✅" if confirmed else ("⚠️" if all_errored else "❌")
     await update.message.reply_text(
-        f"{'✅' if confirmed else '❌'} {verdict}\n\n"
+        f"{icon} {verdict}\n\n"
         f"{body}\n\n"
         f"{footer}"
     )
