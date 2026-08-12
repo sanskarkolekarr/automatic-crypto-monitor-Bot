@@ -70,7 +70,7 @@ def check_evm(chain, address, minutes=15):
     rpcs = BSC_RPCS if chain == "bsc" else ETH_RPCS
     num, ts = _current_block_info(rpcs)
     target_ts = ts - minutes * 60
-    from_block = _find_block(rpcs, 0, num, target_ts)
+    from_block = _find_block(rpcs, 1, num, target_ts)
 
     addr = address.lower()
     pad = "0x" + "0" * 24 + addr[2:]

@@ -9,7 +9,7 @@ _MARKED = re.compile(
 
 # Words that signal a payment action, used to pick up plain numbers like "sent 400"
 _ACTION = re.compile(
-    r"\b(?:sendt?|sentt?|paid|payed|transfer(?:red|ed)?|deposited?|credited|received)\b",
+    r"\b(?:sends?|sent|paid|transfer(?:red|ed)?|deposited?|credited|received)\b",
     re.IGNORECASE,
 )
 

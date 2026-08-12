@@ -354,6 +354,9 @@ def main():
     app.add_handler(CommandHandler("grant", cmd_grant))
     app.add_handler(CommandHandler("revoke", cmd_revoke))
     app.add_handler(CommandHandler("verify", cmd_verify))
+    # BUG FIX: register_conv MUST be added before the catch-all MessageHandler;
+    # otherwise the conversation's text states (REGISTER_CHAIN / REGISTER_ADDRESS)
+    # are intercepted by on_message and the conversation never advances.
     app.add_handler(register_conv)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, on_message))
 

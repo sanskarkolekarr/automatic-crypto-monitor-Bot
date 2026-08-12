@@ -36,8 +36,8 @@ def check_tron(address, minutes=15):
             decimals = int(info.get("decimals", 6))
             value = int(tx.get("value", 0)) / (10 ** decimals)
             received[sym] = received.get(sym, 0) + value
-    except Exception:
-        pass
+    except Exception as exc:
+        raise RuntimeError(str(exc)) from exc
 
     receipts = []
     total = 0.0
