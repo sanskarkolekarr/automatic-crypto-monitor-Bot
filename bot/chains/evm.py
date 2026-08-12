@@ -99,7 +99,13 @@ def check_evm(chain, address, minutes=15):
         )
         if not logs:
             continue
-        raw = sum(int(lg.get("data", "0x0"), 16) for lg in logs)
+
+        def _parse_log_value(lg):
+            raw = lg.get("data", "0x0") or "0x0"
+            # Some RPCs return "0x" with no digits — treat as 0
+            return int(raw, 16) if len(raw) > 2 else 0
+
+        raw = sum(_parse_log_value(lg) for lg in logs)
         if raw:
             received[tok["name"]] = received.get(tok["name"], 0) + raw / 10 ** tok["decimals"]
 

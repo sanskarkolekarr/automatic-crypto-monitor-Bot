@@ -41,7 +41,10 @@ def check_tron(address, minutes=15):
     except Exception as exc:
         raise RuntimeError(str(exc)) from exc
 
-    prices = get_token_prices(list(received.keys()) or ["USDT", "TRX"])
+    if not received:
+        return {"chain": "tron", "address": address, "total_usd": 0.0, "receipts": []}
+
+    prices = get_token_prices(list(received.keys()))
 
     receipts = []
     total = 0.0

@@ -8,7 +8,7 @@ def is_amount_matched(received_total, target_amount, tolerance=TOLERANCE_USD):
     """Check if received amount matches target amount within ±tolerance ($3-$4 up/down)."""
     if received_total <= 0 or target_amount <= 0:
         return False
-    return abs(received_total - target_amount) <= tolerance or received_total >= (target_amount - tolerance)
+    return abs(received_total - target_amount) <= tolerance
 
 
 def verify_wallets(wallets, amount_usd, minutes=15):
