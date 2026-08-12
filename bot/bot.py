@@ -287,10 +287,15 @@ async def run_verification(update: Update, context: ContextTypes.DEFAULT_TYPE, a
 
     verdict = "PAYMENT CONFIRMED" if confirmed else "NO MATCHING PAYMENT FOUND"
     body = "\n".join(lines) or "No data returned."
+    
+    footer = f"💰 Total received: ${total:,.2f} (Target: ${amount:,.2f})"
+    if not confirmed:
+        footer += "\n\n⚠️ If you sent the funds and think we had a technical error, please send proof (screen recording) and tag the middleman!"
+
     await update.message.reply_text(
         f"{'✅' if confirmed else '❌'} {verdict}\n\n"
         f"{body}\n\n"
-        f"💰 Total received: ${total:,.2f} (Target: ${amount:,.2f})"
+        f"{footer}"
     )
 
 
