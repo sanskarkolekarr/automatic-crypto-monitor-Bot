@@ -10,6 +10,7 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
+from telegram.request import HTTPXRequest
 
 from . import db
 from .config import (
@@ -337,7 +338,8 @@ def main():
             "TELEGRAM_BOT_TOKEN is not set. Copy .env.example to .env and fill it in."
         )
 
-    app = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
+    req = HTTPXRequest(connect_timeout=30.0, read_timeout=30.0)
+    app = Application.builder().token(TELEGRAM_BOT_TOKEN).request(req).get_updates_request(req).build()
 
     register_conv = ConversationHandler(
         entry_points=[CommandHandler("register", cmd_register)],
@@ -364,4 +366,5 @@ def main():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, on_message))
 
     logger.info("Bot started. Press Ctrl+C to stop.")
-    app.run_polling()
+    app.run_polling(bootstrap_retries=-1)
+
